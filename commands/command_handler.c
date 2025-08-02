@@ -29,7 +29,7 @@ void acceptCommand() {
   int len = 0;
   char *tokens[ARGLEN];
 
-  split(command, tokens, &len," ");
+  split(command, tokens, &len, " ");
 
   if (len == 2) {
     if (!strcmp(tokens[0], "create_col") && strlen(tokens[1]) > 0) {
@@ -48,7 +48,8 @@ void acceptCommand() {
     if (!strcmp(tokens[0], "read_doc") && strlen(tokens[1]) > 0 &&
         strlen(tokens[2]) > 0) {
 
-      read_doc(tokens[1], tokens[2]);
+      char *buffer = read_doc(tokens[1], tokens[2]);
+      printf("%s", buffer);
 
       return;
     }
@@ -60,14 +61,12 @@ void acceptCommand() {
 
       create_document(tokens[1], tokens[2], tokens[3]);
     }
-   
 
-     if (!strcmp(tokens[0], "change_value") && strlen(tokens[1]) > 0 &&
+    if (!strcmp(tokens[0], "change_value") && strlen(tokens[1]) > 0 &&
         strlen(tokens[2]) > 0) {
 
-      change_value(tokens[1],tokens[2],tokens[3]);
+      change_value(tokens[1], tokens[2], tokens[3]);
     }
-   
 
   } else {
     printf("Unknown Command \n");
@@ -107,24 +106,19 @@ int create_collection(const char *col) {
   }
 }
 
-char* read_doc(char *collectionName, char *docName) {
+char *read_doc(char *collectionName, char *docName) {
 
-  char filepath[256];
-  char buffer[1024];
+  char *buffer = malloc(1024);
 
-  snprintf(filepath, sizeof(filepath), "%s%s/%s.json", BASE_COLLECTION_PATH,
-           collectionName, docName);
+  char *filepath = pathMaker(collectionName, docName);
 
   if (stat(filepath, &st) == -1) {
     printf("file not found \n");
     return;
   }
 
-  readFile(filepath,buffer);
-
-  printf("%s",buffer);
+  readFile(filepath, buffer);
   return buffer;
-
 }
 
 void create_document(const char *col, const char *doc, const char *data) {
@@ -183,22 +177,25 @@ void create_document(const char *col, const char *doc, const char *data) {
   printf("Document %s created\n", colPath);
 }
 
-
-
-void change_value(char *col, char *doc, char *key_value){
+void change_value(char *col, char *doc, char *key_value) {
 
   char *splitedKey[2];
-  int len=0;
+  int len = 0;
 
   (void)col;
   (void)doc;
 
-  printf("key vakue =%s",key_value);
+  split(key_value, splitedKey, &len, "=");
 
-  split(key_value,splitedKey,&len,"=");
+  char *textContent = read_doc(col, doc);
 
-  char *textContent=read_doc(col,doc);
-  
-  printf("%s",textContent);
-  
+  cJSON *json = cJSON_Parse(textContent);
+
+  patch_value(json, splitedKey[0], splitedKey[1]);
+
+  textContent = cJSON_Print(json);
+
+  char *filepath = pathMaker(col, doc);
+
+  writeFile(filepath, textContent);
 }
