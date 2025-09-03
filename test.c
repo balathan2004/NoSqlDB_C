@@ -1,39 +1,79 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
+void splitString(char *input, char array[10][100]) {
 
-char *spiltByIndex(char value[], int index, int end) {
-  char *newString = malloc((end - index) + 1);
-  for (int i = index; i < end; i++) {
-    newString[i - index] = value[i];
+  char buffer[1024];
+
+  int buffIndex = 0;
+  int isBackTicks = 0;
+  int arrayCount = 0;
+
+  int backtickCount = 0;
+  for (int i = 0; input[i] != '\0'; i++) {
+    if (input[i] == '`')
+      backtickCount++;
   }
-  newString[end - index] = '\0';
-  return newString;
-}
 
-void acceptCommand() {
-  char command[1024];
+    for (int i = 0; input[i] != '\0'; i++) {
 
-  printf("\n>>> ");
-  fgets(command, sizeof(command), stdin);
+      if(input[i]=='\n' ){
+      printf("found n",input[i]);
 
-  int len = strlen(command);
-  if (command[len - 1] == '\n') command[len - 1] = '\0'; // Remove newline
-
-  int start = 0;
-  for (int i = 0; i <= len; i++) {
-    if (command[i] == ' ' || command[i] == '\0') {
-      if (i > start) {
-        char *part = spiltByIndex(command, start, i);
-        printf("Token: %s\n", part);
-        free(part);
       }
-      start = i + 1;
+       if(input[i]=='\0'){
+      printf("found null char",input[i]);
+
+      }
+      
     }
+
+  if (backtickCount % 2 != 0) {
+    printf("Error: unmatched backticks in input.\n");
+    return -1;
   }
+
+  for (int i = 0; i < strlen(input); i++) {
+
+    char c = input[i];
+
+    if (c == '`') {
+      isBackTicks = !isBackTicks;
+
+      continue;
+    }
+
+    if (!isBackTicks && (c == ' ' || c == '\0' || c=='\n')) {
+      buffer[buffIndex] = '\0';
+      if (buffIndex > 0) {
+        strcpy(array[arrayCount++], buffer);
+        printf("[%s]", buffer);
+        buffIndex = 0;
+      }
+    } else if(c!='\0') {
+      buffer[buffIndex++] = c;
+    }
+
+    if (input[i] == '`')
+      printf("char found at index %d", i);
+  }
+
+  return array;
 }
 
+int main() {
 
+  char input[100];
 
-void main() { acceptCommand(); }
+  printf("Type: ");
+
+  fgets(input, sizeof(input), stdin);
+
+  printf("\n input is = %s", input);
+
+  char array[10][100];
+
+  splitString(input, array);
+
+  return 0;
+}

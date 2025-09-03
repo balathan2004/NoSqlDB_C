@@ -25,6 +25,9 @@ void split(char *originalString, char **array, int *len, char *delimitter) {
   *len = count;
 }
 
+
+
+
 void readFile(char *filePath, char *text) {
   FILE *fp = fopen(filePath, "rb");
 
