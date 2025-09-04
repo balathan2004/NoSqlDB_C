@@ -1,7 +1,14 @@
 #ifndef UTILS_H
 #define UTILS_H
+#include "../config/config.h"
+#include "../cJSON/cJSON.h"
 
-void split(char *originalString, char **array,int *len,char* delimitter) ;
+
+void splitCommand(char *originalString, char array[][MAX_TOKEN_LEN],int *len);
+    
+
+void splitByDelimitter(char *originalString, char array[][MAX_TOKEN_LEN],int *len,char *delimitter);
+
 
 void readFile(char *filePath,char *text);
 

@@ -1,4 +1,5 @@
 #include "./utils/utils.h"
+#include "./config/config.h"
 #include "commands/command_handler.h"
 #include <limits.h>
 #include <stdio.h>

@@ -2,6 +2,7 @@
 #include "command_handler.h"
 #include "../libs/cJSON/cJSON.h"
 #include "../utils/utils.h"
+#include "../config/config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,7 +15,7 @@ const char *BASE_COLLECTION_PATH = "collections/";
 char fullPath[256];
 struct stat st = {0};
 
-const int ARGLEN = 3;
+
 
 void acceptCommand() {
 
@@ -27,22 +28,27 @@ void acceptCommand() {
   command[strcspn(command, "\n")] = 0;
 
   int len = 0;
-  char *tokens[ARGLEN];
+  char tokens[MAX_ARGS][MAX_TOKEN_LEN];
 
-  split(command, tokens, &len, " ");
+  splitCommand(command, tokens, &len);
+
+  for (int i = 0; i < len; i++) {
+    printf("token:%d-%s\n", i, tokens[i]);
+  }
 
   if (len == 2) {
     if (!strcmp(tokens[0], "create_col") && strlen(tokens[1]) > 0) {
 
       create_collection(tokens[1]);
+      return;
     }
-  }
-  if (len == 3) {
+  } else if (len == 3) {
 
     if (!strcmp(tokens[0], "create_doc") && strlen(tokens[1]) > 0 &&
         strlen(tokens[2]) > 0) {
 
       create_document(tokens[1], tokens[2], NULL);
+      return;
     }
 
     if (!strcmp(tokens[0], "read_doc") && strlen(tokens[1]) > 0 &&
@@ -53,19 +59,20 @@ void acceptCommand() {
 
       return;
     }
-  }
-  if (len == 4) {
+  } else if (len == 4) {
 
     if (!strcmp(tokens[0], "create_doc") && strlen(tokens[1]) > 0 &&
         strlen(tokens[2]) > 0) {
 
       create_document(tokens[1], tokens[2], tokens[3]);
+      return;
     }
 
     if (!strcmp(tokens[0], "change_value") && strlen(tokens[1]) > 0 &&
         strlen(tokens[2]) > 0) {
 
       change_value(tokens[1], tokens[2], tokens[3]);
+      return;
     }
 
   } else {
@@ -114,7 +121,7 @@ char *read_doc(char *collectionName, char *docName) {
 
   if (stat(filepath, &st) == -1) {
     printf("file not found \n");
-    return;
+    return NULL;
   }
 
   readFile(filepath, buffer);
@@ -170,7 +177,14 @@ void create_document(const char *col, const char *doc, const char *data) {
     cJSON_Delete(json);
 
   } else {
-    perror("Failed to create document");
+    FILE *fp = fopen(colPath, "w");
+    if (fp == NULL) {
+      perror("Failed to create document");
+      return;
+    }
+
+    fclose(fp);
+    perror("Empty doc created");
     return;
   }
 
@@ -179,13 +193,13 @@ void create_document(const char *col, const char *doc, const char *data) {
 
 void change_value(char *col, char *doc, char *key_value) {
 
-  char *splitedKey[2];
+  char splitedKey[2][MAX_TOKEN_LEN];
   int len = 0;
 
   (void)col;
   (void)doc;
 
-  split(key_value, splitedKey, &len, "=");
+  splitByDelimitter(key_value, splitedKey, &len, "=");
 
   char *textContent = read_doc(col, doc);
 

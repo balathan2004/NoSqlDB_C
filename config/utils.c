@@ -11,7 +11,6 @@
 
 
 
-
 void splitByDelimitter(char *originalString, char array[][MAX_TOKEN_LEN], int *len, char *delimitter) {
 
   char *saveptr;
