@@ -126,9 +126,9 @@ char *pathMaker(char *col, char *doc) {
 
   const char *BASE_COLLECTION_PATH = "collections/";
 
-  char *filepath = malloc(256);
+  char *filepath = malloc(1024);
 
-  snprintf(filepath, 256, "%s%s/%s.json", BASE_COLLECTION_PATH, col, doc);
+  snprintf(filepath, 1024, "%s%s/%s.json", BASE_COLLECTION_PATH, col, doc);
 
   return filepath;
 }

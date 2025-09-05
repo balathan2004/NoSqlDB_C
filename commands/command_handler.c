@@ -3,6 +3,7 @@
 #include "../libs/cJSON/cJSON.h"
 #include "../utils/utils.h"
 #include "../config/config.h"
+#include "../file_operations/file_function.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -88,11 +89,21 @@ void handle_command(const char *input) {
 int create_collection(const char *col) {
 
   // Create the base directory if it doesn't exist
-  if (stat(BASE_COLLECTION_PATH, &st) == -1) {
-    if (mkdir(BASE_COLLECTION_PATH, 0777) == -1) {
-      perror("Failed to create base collections directory");
-      return 0;
-    }
+
+  
+
+  // if (stat(BASE_COLLECTION_PATH, &st) == -1) {
+  //   if (mkdir(BASE_COLLECTION_PATH, 0777) == -1) {
+  //     perror("Failed to create base collections directory");
+  //     return 0;
+  //   }
+  // }
+
+  int isFileExist=isFolderExistCreate(BASE_COLLECTION_PATH);
+
+  if(!isFileExist){
+    printf("Error Folder creation");
+    return;
   }
 
   snprintf(fullPath, sizeof(fullPath), "%s%s", BASE_COLLECTION_PATH,
