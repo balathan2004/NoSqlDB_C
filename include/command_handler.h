@@ -3,7 +3,6 @@
 
 void handle_command(const char *input);
 
-int create_collection(const char *col);
 
 void acceptCommand();
 

@@ -1,9 +1,9 @@
 #define _POSIX_C_SOURCE 200809L
 #include "command_handler.h"
-#include "../libs/cJSON/cJSON.h"
-#include "../utils/utils.h"
-#include "../config/config.h"
-#include "../file_operations/file_function.h"
+#include "cJSON.h"
+#include "utils.h"
+#include "file_function.h"
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,10 +40,17 @@ void acceptCommand() {
   if (len == 2) {
     if (!strcmp(tokens[0], "create_col") && strlen(tokens[1]) > 0) {
 
-      create_collection(tokens[1]);
+      char *path=pathMaker( tokens[1],NULL);
+
+      isFolderExistCreate(path);
+
+      
+      
       return;
     }
-  } else if (len == 3) {
+   }
+
+   else if (len == 3) {
 
     if (!strcmp(tokens[0], "create_doc") && strlen(tokens[1]) > 0 &&
         strlen(tokens[2]) > 0) {
@@ -60,7 +67,8 @@ void acceptCommand() {
 
       return;
     }
-  } else if (len == 4) {
+  } 
+  else if (len == 4) {
 
     if (!strcmp(tokens[0], "create_doc") && strlen(tokens[1]) > 0 &&
         strlen(tokens[2]) > 0) {
@@ -76,15 +84,13 @@ void acceptCommand() {
       return;
     }
 
-  } else {
+  } 
+  else {
     printf("Unknown Command \n");
   }
 }
 
-void handle_command(const char *input) {
-  (void)input;
-  // actual code here
-}
+
 
 int create_collection(const char *col) {
 
@@ -92,12 +98,6 @@ int create_collection(const char *col) {
 
   
 
-  // if (stat(BASE_COLLECTION_PATH, &st) == -1) {
-  //   if (mkdir(BASE_COLLECTION_PATH, 0777) == -1) {
-  //     perror("Failed to create base collections directory");
-  //     return 0;
-  //   }
-  // }
 
   int isFileExist=isFolderExistCreate(BASE_COLLECTION_PATH);
 
@@ -135,7 +135,7 @@ char *read_doc(char *collectionName, char *docName) {
     return NULL;
   }
 
-  readFile(filepath, buffer);
+  buffer=readFileIfExist(filepath);
   return buffer;
 }
 
@@ -202,25 +202,4 @@ void create_document(const char *col, const char *doc, const char *data) {
   printf("Document %s created\n", colPath);
 }
 
-void change_value(char *col, char *doc, char *key_value) {
 
-  char splitedKey[2][MAX_TOKEN_LEN];
-  int len = 0;
-
-  (void)col;
-  (void)doc;
-
-  splitByDelimitter(key_value, splitedKey, &len, "=");
-
-  char *textContent = read_doc(col, doc);
-
-  cJSON *json = cJSON_Parse(textContent);
-
-  patch_value(json, splitedKey[0], splitedKey[1]);
-
-  textContent = cJSON_Print(json);
-
-  char *filepath = pathMaker(col, doc);
-
-  writeFile(filepath, textContent);
-}

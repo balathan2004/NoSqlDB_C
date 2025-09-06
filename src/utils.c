@@ -1,7 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
-#include "../libs/cJSON/cJSON.h"
 #include "utils.h"
-#include "../config/config.h"
+#include "config.h"
+#include "cJSON.h"
+#include "file_function.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,9 +10,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-
-
-void splitByDelimitter(char *originalString, char array[][MAX_TOKEN_LEN], int *len, char *delimitter) {
+void splitByDelimitter(char *originalString, char array[][MAX_TOKEN_LEN],
+                       int *len, char *delimitter) {
 
   char *saveptr;
 
@@ -21,7 +21,7 @@ void splitByDelimitter(char *originalString, char array[][MAX_TOKEN_LEN], int *l
 
   while (token != NULL) {
 
-    strcpy(array[count++],token);
+    strcpy(array[count++], token);
     // array[count++] = token; // store token
 
     token = strtok_r(NULL, delimitter, &saveptr);
@@ -30,8 +30,7 @@ void splitByDelimitter(char *originalString, char array[][MAX_TOKEN_LEN], int *l
   *len = count;
 }
 
-
-void splitCommand(char *input, char  array[][MAX_TOKEN_LEN],int *len) {
+void splitCommand(char *input, char array[][MAX_TOKEN_LEN], int *len) {
 
   char buffer[1024];
 
@@ -45,13 +44,12 @@ void splitCommand(char *input, char  array[][MAX_TOKEN_LEN],int *len) {
       backtickCount++;
   }
 
-
   if (backtickCount % 2 != 0) {
     printf("Error: unmatched backticks in input.\n");
     return;
   }
 
-  for (int i = 0; i < strlen(input); i++) {
+  for (size_t i = 0; i < strlen(input); i++) {
 
     char c = input[i];
 
@@ -68,67 +66,26 @@ void splitCommand(char *input, char  array[][MAX_TOKEN_LEN],int *len) {
         // printf("[%s]", buffer);
         buffIndex = 0;
       }
-    } else if(c!='\0') {
+    } else if (c != '\0') {
       buffer[buffIndex++] = c;
     }
-
-    
-
-  
   }
 
-
-    if (buffIndex > 0) {
-        buffer[buffIndex] = '\0';
-        strcpy(array[arrayCount++], buffer);
-    }
-
- *len=arrayCount;
-  
-}
-
-
-
-
-void readFile(char *filePath, char *text) {
-  FILE *fp = fopen(filePath, "rb");
-
-  if (fp == NULL) {
-    perror("Error opening file"); // perror gives a more detailed error message
-    fprintf(stderr, "Could not open file at path: %s\n", filePath);
-    // Indicate an error
+  if (buffIndex > 0) {
+    buffer[buffIndex] = '\0';
+    strcpy(array[arrayCount++], buffer);
   }
 
-  fseek(fp, 0, SEEK_END);
-
-  long len = ftell(fp);
-
-  rewind(fp);
-
-  char *buffer = malloc(len + 1);
-
-  if (!buffer) {
-    fprintf(stderr, "malloc failed\n");
-    fclose(fp);
-    return;
-  }
-
-  fread(buffer, 1, len, fp);
-  buffer[len] = '\0';
-
-  strcpy(text, buffer);
-
-  free(buffer);
-  fclose(fp);
+  *len = arrayCount;
 }
 
 char *pathMaker(char *col, char *doc) {
 
   const char *BASE_COLLECTION_PATH = "collections/";
 
-  char *filepath = malloc(1024);
+  char *filepath = malloc(256);
 
-  snprintf(filepath, 1024, "%s%s/%s.json", BASE_COLLECTION_PATH, col, doc);
+  snprintf(filepath, 256, "%s%s/%s.json", BASE_COLLECTION_PATH, col, doc);
 
   return filepath;
 }
@@ -149,15 +106,48 @@ void patch_value(cJSON *json, char *key, char *value) {
   cJSON_SetValuestring(name, value);
 }
 
+void change_value(char *col, char *doc, char *key_value) {
+
+  char splitedKey[2][MAX_TOKEN_LEN];
+  int len = 0;
+
+
+
+  splitByDelimitter(key_value, splitedKey, &len, "=");
+
+  char *filepath=pathMaker(col, doc);
+ 
+
+  char *textContent = readFileIfExist(filepath);
+
+  cJSON *json = cJSON_Parse(textContent);
+
+  patch_value(json, splitedKey[0], splitedKey[1]);
+
+  textContent = cJSON_Print(json);
+
+
+
+  writeFile(filepath, textContent);
+}
+
 void writeFile(char *filepath, char *value) {
 
   FILE *file = fopen(filepath, "w");
 
-  if (file == NULL || strlen(value) < 0) {
-    printf("File isnt exist\n");
+ 
+    if (file == NULL) {
+        printf("Failed to open file: %s\n", filepath);
+        return;
+    }
 
-    return;
-  }
+    if (value == NULL || strlen(value) == 0) {
+        printf("No value to write\n");
+        fclose(file);
+        return;
+    }
+
+
   fprintf(file, value);
   fclose(file);
 }

@@ -59,6 +59,10 @@
   "C_Cpp.errorSquiggles": "disabled",
   "files.associations": {
     "cjson.h": "c",
-    "config.h": "c"
+    "config.h": "c",
+    "string.h": "c",
+    "utils.h": "c",
+    "file_function.h": "c",
+    "stdio.h": "c"
   }
 }

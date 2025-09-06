@@ -1,9 +1,9 @@
-#include "../file_operations/file_function.h"
-#include "../utils/utils.h"
+#include "file_function.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include "config.h"
 
 int isFileExist(char *filepath) {
 
@@ -43,12 +43,15 @@ int isFolderExistCreate(char *filepath) {
 
 char *readFileIfExist(char *filepath) {
 
-  FILE *file = fopen(filepath, "r");
+  FILE *file = fopen(filepath, "rb");
 
   if (!file)
     return NULL;
 
-  fseek(file, 0, SEEK_END);
+  if (fseek(file, 0, SEEK_END) != 0) { // [ADDED] check fseek success
+    fclose(file);
+    return NULL;
+  }
 
   long len = ftell(file);
   if (len < 0) {
@@ -72,18 +75,4 @@ char *readFileIfExist(char *filepath) {
   fclose(file);
   return buffer;
 }
-
-
-int recursiveFolderCreatorCheck(char *filepath){
-
-
-  char paths[][256];
-
-
-
-
-
-
-}
-
 
