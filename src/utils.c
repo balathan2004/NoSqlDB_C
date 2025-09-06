@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "utils.h"
-#include "config.h"
 #include "cJSON.h"
+#include "config.h"
 #include "file_function.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,13 +30,15 @@ void splitByDelimitter(char *originalString, char array[][MAX_TOKEN_LEN],
   *len = count;
 }
 
-void splitCommand(char *input, char array[][MAX_TOKEN_LEN], int *len) {
+int splitCommand(char *input, char array[][MAX_TOKEN_LEN]) {
 
   char buffer[1024];
 
   int buffIndex = 0;
   int isBackTicks = 0;
   int arrayCount = 0;
+
+  size_t inputLen = strlen(input);
 
   int backtickCount = 0;
   for (int i = 0; input[i] != '\0'; i++) {
@@ -46,16 +48,15 @@ void splitCommand(char *input, char array[][MAX_TOKEN_LEN], int *len) {
 
   if (backtickCount % 2 != 0) {
     printf("Error: unmatched backticks in input.\n");
-    return;
+    return 0;
   }
 
-  for (size_t i = 0; i < strlen(input); i++) {
+  for (size_t i = 0; i < inputLen; i++) {
 
     char c = input[i];
 
     if (c == '`') {
       isBackTicks = !isBackTicks;
-
       continue;
     }
 
@@ -76,14 +77,18 @@ void splitCommand(char *input, char array[][MAX_TOKEN_LEN], int *len) {
     strcpy(array[arrayCount++], buffer);
   }
 
-  *len = arrayCount;
+  return arrayCount;
 }
 
 char *pathMaker(char *col, char *doc) {
 
-  const char *BASE_COLLECTION_PATH = "collections/";
-
   char *filepath = malloc(256);
+
+  if (!doc) {
+    snprintf(filepath, 256, "%s%s", BASE_COLLECTION_PATH, col);
+
+    return filepath;
+  }
 
   snprintf(filepath, 256, "%s%s/%s.json", BASE_COLLECTION_PATH, col, doc);
 
@@ -111,12 +116,9 @@ void change_value(char *col, char *doc, char *key_value) {
   char splitedKey[2][MAX_TOKEN_LEN];
   int len = 0;
 
-
-
   splitByDelimitter(key_value, splitedKey, &len, "=");
 
-  char *filepath=pathMaker(col, doc);
- 
+  char *filepath = pathMaker(col, doc);
 
   char *textContent = readFileIfExist(filepath);
 
@@ -126,8 +128,6 @@ void change_value(char *col, char *doc, char *key_value) {
 
   textContent = cJSON_Print(json);
 
-
-
   writeFile(filepath, textContent);
 }
 
@@ -135,18 +135,16 @@ void writeFile(char *filepath, char *value) {
 
   FILE *file = fopen(filepath, "w");
 
- 
-    if (file == NULL) {
-        printf("Failed to open file: %s\n", filepath);
-        return;
-    }
+  if (file == NULL) {
+    printf("Failed to open file: %s\n", filepath);
+    return;
+  }
 
-    if (value == NULL || strlen(value) == 0) {
-        printf("No value to write\n");
-        fclose(file);
-        return;
-    }
-
+  if (value == NULL || strlen(value) == 0) {
+    printf("No value to write\n");
+    fclose(file);
+    return;
+  }
 
   fprintf(file, value);
   fclose(file);

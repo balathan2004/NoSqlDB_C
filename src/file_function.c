@@ -1,9 +1,9 @@
 #include "file_function.h"
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include "config.h"
 
 int isFileExist(char *filepath) {
 
@@ -30,6 +30,7 @@ int isFolderExistCreate(char *filepath) {
       fprintf(stderr, "Path exists but is not a directory\n");
       return 0;
     }
+    printf("Folder exists\n");
     return 1; // Folder exists
   }
 
@@ -37,6 +38,8 @@ int isFolderExistCreate(char *filepath) {
     perror("Failed to create base collections directory");
     return 0;
   }
+
+  printf("Folder Created\n");
 
   return 1;
 }
@@ -75,4 +78,3 @@ char *readFileIfExist(char *filepath) {
   fclose(file);
   return buffer;
 }
-

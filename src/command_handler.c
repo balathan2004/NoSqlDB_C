@@ -1,26 +1,22 @@
 #define _POSIX_C_SOURCE 200809L
 #include "command_handler.h"
 #include "cJSON.h"
-#include "utils.h"
-#include "file_function.h"
 #include "config.h"
+#include "file_function.h"
+#include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-const char *BASE_COLLECTION_PATH = "collections/";
-
-char fullPath[256];
-struct stat st = {0};
+#include "db.h"
 
 
 
 void acceptCommand() {
 
-  char command[256];
+  char command[2048];
 
   printf(">>> ");
 
@@ -28,10 +24,9 @@ void acceptCommand() {
 
   command[strcspn(command, "\n")] = 0;
 
-  int len = 0;
   char tokens[MAX_ARGS][MAX_TOKEN_LEN];
 
-  splitCommand(command, tokens, &len);
+  int len = splitCommand(command, tokens);
 
   for (int i = 0; i < len; i++) {
     printf("token:%d-%s\n", i, tokens[i]);
@@ -39,18 +34,13 @@ void acceptCommand() {
 
   if (len == 2) {
     if (!strcmp(tokens[0], "create_col") && strlen(tokens[1]) > 0) {
-
-      char *path=pathMaker( tokens[1],NULL);
-
+      char *path = pathMaker(tokens[1], NULL);
       isFolderExistCreate(path);
-
-      
-      
       return;
     }
-   }
+  }
 
-   else if (len == 3) {
+  else if (len == 3) {
 
     if (!strcmp(tokens[0], "create_doc") && strlen(tokens[1]) > 0 &&
         strlen(tokens[2]) > 0) {
@@ -67,8 +57,7 @@ void acceptCommand() {
 
       return;
     }
-  } 
-  else if (len == 4) {
+  } else if (len == 4) {
 
     if (!strcmp(tokens[0], "create_doc") && strlen(tokens[1]) > 0 &&
         strlen(tokens[2]) > 0) {
@@ -84,122 +73,7 @@ void acceptCommand() {
       return;
     }
 
-  } 
-  else {
+  } else {
     printf("Unknown Command \n");
   }
 }
-
-
-
-int create_collection(const char *col) {
-
-  // Create the base directory if it doesn't exist
-
-  
-
-
-  int isFileExist=isFolderExistCreate(BASE_COLLECTION_PATH);
-
-  if(!isFileExist){
-    printf("Error Folder creation");
-    return;
-  }
-
-  snprintf(fullPath, sizeof(fullPath), "%s%s", BASE_COLLECTION_PATH,
-           col); // will edit fullpath as usable path
-
-  if (stat(fullPath, &st) == -1) {
-    int check = mkdir(fullPath, 0777);
-
-    if (check == 0) {
-      printf("%s collection created\n", fullPath);
-    } else {
-      perror("mkdir failed");
-    }
-    return !check;
-  } else {
-    printf("File already exist");
-    return 0;
-  }
-}
-
-char *read_doc(char *collectionName, char *docName) {
-
-  char *buffer = malloc(1024);
-
-  char *filepath = pathMaker(collectionName, docName);
-
-  if (stat(filepath, &st) == -1) {
-    printf("file not found \n");
-    return NULL;
-  }
-
-  buffer=readFileIfExist(filepath);
-  return buffer;
-}
-
-void create_document(const char *col, const char *doc, const char *data) {
-
-  char colPath[256];
-  snprintf(colPath, sizeof(colPath), "%s%s", BASE_COLLECTION_PATH, col);
-
-  if (stat(colPath, &st) == -1) {
-    if (mkdir(colPath, 0777) == -1) {
-      perror("Failed to create collection directory");
-      return;
-    }
-  }
-
-  snprintf(colPath, sizeof(colPath), "%s%s/%s.%s", BASE_COLLECTION_PATH, col,
-           doc, "json");
-
-  if (data != NULL) {
-
-    cJSON *json = cJSON_Parse(data);
-
-    if (json == NULL) {
-      printf("Invalid JSON string.\n");
-      return;
-    }
-
-    char *formatted = cJSON_Print(json);
-
-    printf("%s", formatted);
-    if (!formatted) {
-      printf("Failed to format JSON.\n");
-      cJSON_Delete(json);
-      return;
-    }
-
-    // Open file and write formatted JSON
-    FILE *fp = fopen(colPath, "w");
-    if (fp == NULL) {
-      perror("Failed to create document");
-      free(formatted);
-      cJSON_Delete(json);
-      return;
-    }
-
-    fputs(formatted, fp);
-    fclose(fp);
-
-    free(formatted);
-    cJSON_Delete(json);
-
-  } else {
-    FILE *fp = fopen(colPath, "w");
-    if (fp == NULL) {
-      perror("Failed to create document");
-      return;
-    }
-
-    fclose(fp);
-    perror("Empty doc created");
-    return;
-  }
-
-  printf("Document %s created\n", colPath);
-}
-
-
