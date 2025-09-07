@@ -21,7 +21,78 @@ int isFileExist(char *filepath) {
   return 1;
 }
 
-int isFolderExistCreate(char *filepath) {
+FILE *returnFilePathExists(char *filepath, char *mode) {
+
+  FILE *file;
+
+  if (mode == NULL) {
+    file = fopen(filepath, "r");
+  } else {
+    file = fopen(filepath, mode);
+  }
+
+  if (!file) {
+    printf("\n File Doesn't exist");
+    return NULL;
+  }
+
+  // fclose(file);
+
+  return file;
+}
+
+int createFile(char *filepath) {}
+
+int createFolderRecursive(char *filepath) {
+
+  char tmp[1048];
+  char *p = NULL;
+  size_t len;
+
+  snprintf(tmp, sizeof(tmp), "%s", filepath); // Copy path into tmp buffer
+  len = strlen(tmp);
+
+  if (len > 0 && tmp[len - 1] == '/') {
+    tmp[len-1] = '\0';
+  }
+
+  for (p = tmp + 1; *p; p++) {
+
+    if (*p == '/') {
+      *p = '\0';
+
+       if (!isFolderExists(tmp)) {
+                if (createFolder(tmp) != 0) {
+                    return -1; // Stop if folder creation fails
+                }
+            }
+
+      *p = '/';
+    }
+  }
+
+    if (!isFolderExists(tmp)) {
+        if (createFolder(tmp) != 0) {
+            return -1;
+        }
+    }
+
+    return 1;
+
+  
+}
+
+int isFolderExists(char *filepath) {
+
+  struct stat st;
+
+  if (stat(filepath, &st) == 0 && S_ISDIR(st.st_mode)) {
+    return 1;
+  }
+  return 0;
+}
+
+int createFolder(char *filepath) {
 
   struct stat st = {0};
 
@@ -77,4 +148,25 @@ char *readFileIfExist(char *filepath) {
   buffer[bytesRead] = '\0';
   fclose(file);
   return buffer;
+}
+
+
+
+void writeFile(char *filepath, char *value) {
+
+  FILE *file = fopen(filepath, "w");
+
+  if (file == NULL) {
+    printf("Failed to open file: %s\n", filepath);
+    return;
+  }
+
+  if (value == NULL || strlen(value) == 0) {
+    printf("No value to write\n");
+    fclose(file);
+    return;
+  }
+
+  fprintf(file, value);
+  fclose(file);
 }

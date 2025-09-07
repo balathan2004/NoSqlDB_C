@@ -18,16 +18,18 @@ int create_collection(const char *col) {
 
   // Create the base directory if it doesn't exist
 
-  int isFileExist = isFolderExistCreate(BASE_COLLECTION_PATH);
+  char *filepath;
+
+  int isFileExist = isFolderExists(BASE_COLLECTION_PATH);
 
   if (!isFileExist) {
     printf("Error Folder creation");
     return;
   }
 
-  char *filepath = pathMaker(col, NULL);
+  // filepath = ;
 
-  int res = isFolderExistCreate(filepath);
+  int res = createFolderRecursive(pathMaker(col, NULL));
 
   return res;
 }
@@ -53,16 +55,16 @@ void create_document(const char *col, const char *doc, const char *data) {
 
   filepath = pathMaker(col, doc);
 
-  snprintf(colPath, sizeof(colPath), "%s%s", BASE_COLLECTION_PATH, col);
+  snprintf(filepath, sizeof(filepath), "%s%s", BASE_COLLECTION_PATH, col);
 
-  if (stat(colPath, &st) == -1) {
-    if (mkdir(colPath, 0777) == -1) {
+  if (stat(filepath, &st) == -1) {
+    if (mkdir(filepath, 0777) == -1) {
       perror("Failed to create collection directory");
       return;
     }
   }
 
-  snprintf(colPath, sizeof(colPath), "%s%s/%s.%s", BASE_COLLECTION_PATH, col,
+  snprintf(filepath, sizeof(filepath), "%s%s/%s.%s", BASE_COLLECTION_PATH, col,
            doc, "json");
 
   if (data != NULL) {
@@ -84,7 +86,7 @@ void create_document(const char *col, const char *doc, const char *data) {
     }
 
     // Open file and write formatted JSON
-    FILE *fp = fopen(colPath, "w");
+    FILE *fp = fopen(filepath, "w");
     if (fp == NULL) {
       perror("Failed to create document");
       free(formatted);
@@ -99,7 +101,7 @@ void create_document(const char *col, const char *doc, const char *data) {
     cJSON_Delete(json);
 
   } else {
-    FILE *fp = fopen(colPath, "w");
+    FILE *fp = fopen(filepath, "w");
     if (fp == NULL) {
       perror("Failed to create document");
       return;
@@ -110,5 +112,5 @@ void create_document(const char *col, const char *doc, const char *data) {
     return;
   }
 
-  printf("Document %s created\n", colPath);
+  printf("Document %s created\n", filepath);
 }

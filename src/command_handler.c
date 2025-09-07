@@ -35,7 +35,7 @@ void acceptCommand() {
   if (len == 2) {
     if (!strcmp(tokens[0], "create_col") && strlen(tokens[1]) > 0) {
       char *path = pathMaker(tokens[1], NULL);
-      isFolderExistCreate(path);
+      createFolder(path);
       return;
     }
   }
