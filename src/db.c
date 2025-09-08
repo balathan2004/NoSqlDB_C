@@ -11,23 +11,14 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-char fullPath[256];
-struct stat st = {0};
-
 int create_collection(const char *col) {
-
-  // Create the base directory if it doesn't exist
-
-  char *filepath;
 
   int isFileExist = isFolderExists(BASE_COLLECTION_PATH);
 
   if (!isFileExist) {
     printf("Error Folder creation");
-    return;
+    return 0;
   }
-
-  // filepath = ;
 
   int res = createFolderRecursive(pathMaker(col, NULL));
 
@@ -35,6 +26,8 @@ int create_collection(const char *col) {
 }
 
 char *read_doc(char *collectionName, char *docName) {
+
+  struct stat st = {0};
 
   char *buffer = malloc(1024);
 
@@ -51,21 +44,16 @@ char *read_doc(char *collectionName, char *docName) {
 
 void create_document(const char *col, const char *doc, const char *data) {
 
-  char filepath[1048];
+  char *filepath;
 
-  filepath = pathMaker(col, doc);
+  filepath = pathMaker(col, NULL);
 
-  snprintf(filepath, sizeof(filepath), "%s%s", BASE_COLLECTION_PATH, col);
-
-  if (stat(filepath, &st) == -1) {
-    if (mkdir(filepath, 0777) == -1) {
-      perror("Failed to create collection directory");
-      return;
-    }
+  if (!createFolderRecursive(filepath)) {
+    printf("Error Creating File");
+    return;
   }
 
-  snprintf(filepath, sizeof(filepath), "%s%s/%s.%s", BASE_COLLECTION_PATH, col,
-           doc, "json");
+  filepath = pathMaker(col, doc);
 
   if (data != NULL) {
 
@@ -78,37 +66,20 @@ void create_document(const char *col, const char *doc, const char *data) {
 
     char *formatted = cJSON_Print(json);
 
-    printf("%s", formatted);
-    if (!formatted) {
-      printf("Failed to format JSON.\n");
-      cJSON_Delete(json);
-      return;
-    }
-
-    // Open file and write formatted JSON
-    FILE *fp = fopen(filepath, "w");
-    if (fp == NULL) {
-      perror("Failed to create document");
-      free(formatted);
-      cJSON_Delete(json);
-      return;
-    }
-
-    fputs(formatted, fp);
-    fclose(fp);
+    writeFile(filepath, formatted);
 
     free(formatted);
     cJSON_Delete(json);
 
   } else {
-    FILE *fp = fopen(filepath, "w");
-    if (fp == NULL) {
-      perror("Failed to create document");
-      return;
+
+    char *text = readFileIfExist(filepath);
+
+    if (text == NULL || strlen(text) <= 0) {
+      writeFile(filepath, NULL);
     }
 
-    fclose(fp);
-    perror("Empty doc created");
+    printf("Empty doc created");
     return;
   }
 

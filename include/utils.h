@@ -17,6 +17,6 @@ void patch_value(cJSON *json, char *key, char *value);
 
 
 
-char *pathMaker(char *col, char *doc );
+char *pathMaker(const char *col,const char *doc );
 
 #endif

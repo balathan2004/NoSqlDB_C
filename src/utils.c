@@ -80,7 +80,7 @@ int splitCommand(char *input, char array[][MAX_TOKEN_LEN]) {
   return arrayCount;
 }
 
-char *pathMaker(char *col, char *doc) {
+char *pathMaker(const char *col,const char *doc) {
 
   char *filepath = malloc(256);
 
@@ -131,21 +131,3 @@ void change_value(char *col, char *doc, char *key_value) {
   writeFile(filepath, textContent);
 }
 
-void writeFile(char *filepath, char *value) {
-
-  FILE *file = fopen(filepath, "w");
-
-  if (file == NULL) {
-    printf("Failed to open file: %s\n", filepath);
-    return;
-  }
-
-  if (value == NULL || strlen(value) == 0) {
-    printf("No value to write\n");
-    fclose(file);
-    return;
-  }
-
-  fprintf(file, value);
-  fclose(file);
-}

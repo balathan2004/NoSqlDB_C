@@ -2,6 +2,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -41,7 +42,7 @@ FILE *returnFilePathExists(char *filepath, char *mode) {
   return file;
 }
 
-int createFile(char *filepath) {}
+
 
 int createFolderRecursive(char *filepath) {
 
@@ -82,7 +83,7 @@ int createFolderRecursive(char *filepath) {
   
 }
 
-int isFolderExists(char *filepath) {
+int isFolderExists(const char *filepath) {
 
   struct stat st;
 

@@ -2,6 +2,7 @@
 #include "command_handler.h"
 #include "cJSON.h"
 #include "config.h"
+#include "db.h"
 #include "file_function.h"
 #include "utils.h"
 #include <stdio.h>
@@ -10,9 +11,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "db.h"
-
-
 
 void acceptCommand() {
 

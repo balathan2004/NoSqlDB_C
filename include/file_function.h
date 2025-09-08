@@ -4,11 +4,11 @@
 
 int isFileExist(char *filepath);
 
-void createFile(char *filepath);
 
-int isFolderExists(char *filepath);
 
-void createFolder(char *filpath);
+int isFolderExists(const char *filepath);
+
+int createFolder(char *filpath);
 
 
 int createFolderRecursive(char *filepath);
