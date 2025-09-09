@@ -131,9 +131,49 @@ void change_value(char *filepath, char *key_value) {
 
 void update_doc(const char *filepath, char *textContent) {
 
-  (void)filepath;
+  char *docContent = readFileIfExist(filepath);
 
-  char *writableText = returnWritableJson(textContent);
+  if (docContent == NULL)
+    return;
 
-  printf("%s", writableText);
+cJSON *parsedDoc = cJSON_Parse(docContent);
+cJSON *parsedJson = cJSON_Parse(textContent);
+
+
+  if (!parsedJson) {
+    printf("Error parsing json");
+    return;
+  }
+
+  if (cJSON_IsArray(parsedJson)) {
+    cJSON *element = NULL;
+    cJSON_ArrayForEach(element, parsedJson) {
+      if (cJSON_IsObject(element)) {
+        cJSON *item = element->child;
+         while (item != NULL) {
+          // Duplicate the item before adding, to avoid issues with ownership
+          cJSON_AddItemToObject(parsedDoc, item->string,
+                                cJSON_Duplicate(item, 1));
+          item = item->next;
+        }
+      }
+    }
+  }
+
+  if (cJSON_IsObject(parsedJson)) {
+    cJSON *item = NULL;
+    item = parsedJson->child;
+    while (item != NULL) {
+      // Duplicate the item before adding, to avoid issues with ownership
+      cJSON_AddItemToObject(parsedDoc, item->string, cJSON_Duplicate(item, 1));
+      item = item->next;
+    }
+  }
+
+char *printable = cJSON_Print(parsedDoc);
+
+writeFile(filepath,printable);
+
 }
+
+
