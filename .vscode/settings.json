@@ -64,6 +64,7 @@
     "utils.h": "c",
     "file_function.h": "c",
     "stdio.h": "c",
-    "stdlib.h": "c"
+    "stdlib.h": "c",
+    "json_functions.h": "c"
   }
 }

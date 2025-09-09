@@ -55,6 +55,9 @@ void acceptCommand() {
 
       return;
     }
+
+  
+
   } else if (len == 4) {
 
     if (!strcmp(tokens[0], "create_doc") && strlen(tokens[1]) > 0 &&
@@ -67,7 +70,13 @@ void acceptCommand() {
     if (!strcmp(tokens[0], "change_value") && strlen(tokens[1]) > 0 &&
         strlen(tokens[2]) > 0) {
 
-      change_value(tokens[1], tokens[2], tokens[3]);
+      change_value(pathMaker(tokens[1], tokens[2]), tokens[3]);
+      return;
+    }
+
+      if (!strcmp(tokens[0], "update_doc"),
+        strlen(tokens[1]) > 0 && strlen(tokens[2]) > 0) {
+      update_doc(pathMaker(tokens[1], tokens[2]),tokens[3]);
       return;
     }
 

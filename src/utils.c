@@ -3,6 +3,8 @@
 #include "cJSON.h"
 #include "config.h"
 #include "file_function.h"
+#include "json_functions.h"
+#include "types.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,8 +24,6 @@ void splitByDelimitter(char *originalString, char array[][MAX_TOKEN_LEN],
   while (token != NULL) {
 
     strcpy(array[count++], token);
-    // array[count++] = token; // store token
-
     token = strtok_r(NULL, delimitter, &saveptr);
   }
 
@@ -80,7 +80,7 @@ int splitCommand(char *input, char array[][MAX_TOKEN_LEN]) {
   return arrayCount;
 }
 
-char *pathMaker(const char *col,const char *doc) {
+char *pathMaker(const char *col, const char *doc) {
 
   char *filepath = malloc(256);
 
@@ -111,14 +111,12 @@ void patch_value(cJSON *json, char *key, char *value) {
   cJSON_SetValuestring(name, value);
 }
 
-void change_value(char *col, char *doc, char *key_value) {
+void change_value(char *filepath, char *key_value) {
 
   char splitedKey[2][MAX_TOKEN_LEN];
   int len = 0;
 
   splitByDelimitter(key_value, splitedKey, &len, "=");
-
-  char *filepath = pathMaker(col, doc);
 
   char *textContent = readFileIfExist(filepath);
 
@@ -131,3 +129,11 @@ void change_value(char *col, char *doc, char *key_value) {
   writeFile(filepath, textContent);
 }
 
+void update_doc(const char *filepath, char *textContent) {
+
+  (void)filepath;
+
+  char *writableText = returnWritableJson(textContent);
+
+  printf("%s", writableText);
+}

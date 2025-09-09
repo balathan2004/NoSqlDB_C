@@ -19,4 +19,7 @@ void patch_value(cJSON *json, char *key, char *value);
 
 char *pathMaker(const char *col,const char *doc );
 
+void update_doc(const char *filepath,char *textContent);
+
+
 #endif
